@@ -115,13 +115,7 @@ export default function Home() {
     },
   });
 
-  useEffect(() => {
-    // This will run when the component mounts
-    if (!user) {
-      toast.error("Please log in to access this page");
-      navigate("/login");
-    }
-  }, [user, navigate]);
+  // Authentication is now handled by ProtectedRoute component
 
   const handleLogout = () => {
     logoutUser();

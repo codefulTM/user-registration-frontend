@@ -184,17 +184,13 @@ export const api = {
     }
   },
 
-  async logout() {
-    try {
-      await axiosInstance.post("/user/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Clear tokens and redirect to login
-      accessToken = null;
-      localStorage.removeItem("refreshToken");
-      window.location.href = "/login";
-    }
+  logout() {
+    // Clear tokens
+    accessToken = null;
+    localStorage.removeItem("refreshToken");
+
+    // // Redirect to login page
+    // window.location.href = "/login";
   },
 
   // Check if user is authenticated
@@ -208,8 +204,36 @@ export const api = {
   },
 
   // Get current user data
-  getCurrentUser() {
-    if (!accessToken) return null;
+  async getCurrentUser() {
+    // If no access token, try to refresh
+    if (!accessToken) {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) return null;
+
+      try {
+        // Attempt to refresh the token
+        const response = await axiosInstance.post("/user/refresh-token", {
+          refreshToken: refreshToken,
+        });
+
+        if (!response.data.accessToken) {
+          // If no new access token, clear everything
+          accessToken = null;
+          localStorage.removeItem("refreshToken");
+          return null;
+        }
+
+        // Update access token
+        accessToken = response.data.accessToken;
+      } catch (error) {
+        console.error("Failed to refresh token:", error);
+        accessToken = null;
+        localStorage.removeItem("refreshToken");
+        return null;
+      }
+    }
+
+    // If we get here, we have a valid access token or just refreshed it
 
     try {
       const base64Url = accessToken.split(".")[1];

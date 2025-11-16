@@ -23,7 +23,11 @@ const queryClient = new QueryClient({
 
 // Wrapper component to handle auth redirects
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a nice loading spinner
+  }
 
   return (
     <Routes>
@@ -32,6 +36,8 @@ const AppRoutes = () => {
           ? <Navigate to="/home" replace /> 
           : <Navigate to="/login" replace />
       } />
+      
+      {/* Public routes */}
       <Route path="/login" element={
         !isAuthenticated ? <Login /> : <Navigate to="/home" replace />
       } />
@@ -39,7 +45,7 @@ const AppRoutes = () => {
         !isAuthenticated ? <SignUp /> : <Navigate to="/home" replace />
       } />
       
-      {/* Protected Routes */}
+      {/* Protected Routes - Only accessible when authenticated */}
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={<Home />} />
         {/* Add more protected routes here */}

@@ -1,14 +1,22 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const ProtectedRoute = () => {
   const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <div>Loading...</div>; // Or a loading spinner
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    // Redirect them to the /login page, but save the current location they were
+    // trying to go to when they were redirected. This allows us to send them
+    // along to that page after they login.
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

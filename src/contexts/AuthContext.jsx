@@ -1,8 +1,14 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { jwtDecode } from 'jwt-decode';
-import { api } from '../lib/api';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
+import { api } from "../lib/api";
 
 const AuthContext = createContext({});
 
@@ -13,12 +19,19 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // Get current user from token
-  const getCurrentUser = useCallback(() => {
+  const getCurrentUser = useCallback(async () => {
     try {
-      const currentUser = api.getCurrentUser();
-      return currentUser || null;
+      const currentUser = await api.getCurrentUser();
+      if (currentUser) {
+        return {
+          id: currentUser.sub,
+          email: currentUser.email,
+          // Add other user properties as needed
+        };
+      }
+      return null;
     } catch (error) {
-      console.error('Error getting current user:', error);
+      console.error("Error getting current user:", error);
       return null;
     }
   }, []);
@@ -27,18 +40,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const currentUser = getCurrentUser();
+        const currentUser = await getCurrentUser();
         if (currentUser) {
-          setUser({
-            id: currentUser.sub,
-            email: currentUser.email,
-            // Add other user properties as needed
-          });
+          setUser(currentUser);
           setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error);
-        await logout();
+        console.error("Failed to initialize auth:", error);
+        setIsAuthenticated(false);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -51,7 +64,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.login({ email, password });
-      
+
       // Get user info from token
       const currentUser = getCurrentUser();
       setUser({
@@ -59,32 +72,32 @@ export const AuthProvider = ({ children }) => {
         email: currentUser.email,
         // Add other user properties as needed
       });
-      
+
       setIsAuthenticated(true);
-      
+
       // Redirect to home
-      navigate('/home');
-      
+      navigate("/home");
+
       return { success: true };
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       throw error;
     }
   };
 
   // Logout function
-  const logout = async () => {
+  const logout = () => {
     try {
-      await api.logout();
+      api.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       // Clear state
       setUser(null);
       setIsAuthenticated(false);
-      
+
       // Redirect to login
-      navigate('/login');
+      navigate("/login");
     }
   };
 
@@ -103,7 +116,7 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error("Auth check failed:", error);
       return false;
     }
   }, [getCurrentUser]);
