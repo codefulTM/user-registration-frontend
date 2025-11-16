@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../lib/api";
@@ -185,12 +185,12 @@ function SignUp() {
         <div className="text-center text-sm">
           <p className="text-gray-600">
             Already have an account?{" "}
-            <a
-              href="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+            <Link
+              to="/login"
+              className="font-medium text-indigo-600 hover:text-indigo-500 hover:underline"
             >
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
       </div>
