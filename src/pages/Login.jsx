@@ -1,14 +1,31 @@
 import { useForm } from "react-hook-form";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { toast } from "react-hot-toast";
-import { useLogin } from "../features/auth/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useMutation } from "@tanstack/react-query";
 
 function Login() {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const { mutate: login, isLoading, isError, error } = useLogin();
+  const { login } = useAuth();
+
+  // Use mutation for login
+  const {
+    mutate: loginUser,
+    isLoading,
+    error,
+  } = useMutation({
+    mutationFn: ({ email, password }) => login(email, password),
+    onSuccess: () => {
+      toast.success("Successfully signed in!");
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.message || "Login failed. Please try again."
+      );
+    },
+  });
 
   const {
     register,
@@ -32,12 +49,7 @@ function Login() {
   }, [state]);
 
   const onSubmit = (data) => {
-    login(data, {
-      onSuccess: () => {
-        toast.success("Successfully signed in!");
-        navigate("/home", { replace: true });
-      },
-    });
+    loginUser({ email: data.email, password: data.password });
   };
 
   return (
@@ -58,7 +70,7 @@ function Login() {
           </p>
         </div>
 
-        {isError && (
+        {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
             <div className="flex">
               <div className="text-red-700">

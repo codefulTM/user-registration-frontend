@@ -1,18 +1,29 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { useRegister } from "../features/auth/useAuth";
+import { useMutation } from "@tanstack/react-query";
+import { api } from "../lib/api";
 
 function SignUp() {
   const { state } = useLocation();
+  const navigate = useNavigate();
+
   const {
     mutate: registerUser,
     isLoading,
     isError,
     error,
     isSuccess,
-  } = useRegister();
+  } = useMutation({
+    mutationFn: (userData) => api.register(userData),
+    onSuccess: () => {
+      // Redirect to login on successful registration
+      navigate("/login", {
+        state: { message: "Registration successful! Please log in." },
+      });
+    },
+  });
 
   const {
     register,
